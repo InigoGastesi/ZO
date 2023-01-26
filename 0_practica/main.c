@@ -2,57 +2,80 @@
 #include <string.h>
 #include <ctype.h>
 #include <stdlib.h>
+
 void print_string (unsigned char a[], int len);
+
 int main() {
-    unsigned char cipher[1000]="Pda Ywaown yeldan ywj xa awoehu xnkgaj araj ej w yeldanpatp-kjhu oyajwnek. Psk oepqwpekjo ywj xa ykjoezanaz: 1) wj wppwygan gjkso (kn cqaooao) pdwp okia oknp kb oeilha oqxopepqpekj yeldan dwo xaaj qoaz, xqp jkp olayebeywhhu pdwp ep eo w Ywaown oydaia; wjz 2) wj wppwygan gjkso pdwp w Ywaown yeldan eo ej qoa, xqp zkao jkp gjks pda odebp rwhqa. Ej pda benop ywoa, pda yeldan ywj xa xnkgaj qoejc pda owia paydjemqao wo bkn w cajanwh oeilha oqxopepqpekj yeldan, oqyd wo bnamqajyu wjwhuoeo kn lwppanj sknzo. Sdeha okhrejc, ep eo hegahu pdwp wj wppwygan sehh mqeyghu jkpeya pda nacqhwnepu ej pda okhqpekj wjz zazqya pdwp w Ywaown yeldan eo pda olayebey whcknepdi ailhkuaz.Ej pda oaykjz ejopwjya, xnawgejc pda oydaia eo araj ikna opnwecdpbknswnz. Oejya pdana wna kjhu w heiepaz jqixan kb lkooexha odebpo (26 ej Ajcheod), pdau ywj awyd xa paopaz ej pqnj ej w xnqpa bknya wppwyg. ";
-    int len=strlen(cipher);
-    print_string(cipher,len);
-    //Rellenar el código aquí
-    unsigned int frecuency[26];
-    unsigned char message[1000];
-    unsigned int c, offset;
-    unsigned char shifted;
-    char dictionary[25][10];
+    unsigned char cipher[1000] = "Pda Ywaown yeldan ywj xa awoehu xnkgaj araj ej w yeldanpatp-kjhu oyajwnek. Psk oepqwpekjo ywj xa ykjoezanaz: 1) wj wppwygan gjkso (kn cqaooao) pdwp okia oknp kb oeilha oqxopepqpekj yeldan dwo xaaj qoaz, xqp jkp olayebeywhhu pdwp ep eo w Ywaown oydaia; wjz 2) wj wppwygan gjkso pdwp w Ywaown yeldan eo ej qoa, xqp zkao jkp gjks pda odebp rwhqa. Ej pda benop ywoa, pda yeldan ywj xa xnkgaj qoejc pda owia paydjemqao wo bkn w cajanwh oeilha oqxopepqpekj yeldan, oqyd wo bnamqajyu wjwhuoeo kn lwppanj sknzo. Sdeha okhrejc, ep eo hegahu pdwp wj wppwygan sehh mqeyghu jkpeya pda nacqhwnepu ej pda okhqpekj wjz zazqya pdwp w Ywaown yeldan eo pda olayebey whcknepdi ailhkuaz.Ej pda oaykjz ejopwjya, xnawgejc pda oydaia eo araj ikna opnwecdpbknswnz. Oejya pdana wna kjhu w heiepaz jqixan kb lkooexha odebpo (26 ej Ajcheod), pdau ywj awyd xa paopaz ej pqnj ej w xnqpa bknya wppwyg. ";
     unsigned char *line = NULL;
+    float scores[25] = {0.0};
+    float max = 0.0;
+    int max_index = 0;
+    int len = strlen(cipher);
+    int word_index = 0;
     int size = 10;
-    int index=0;
+
+    unsigned int c, message_score;
+    unsigned char decrypted_message[25][1000], dictionary[22][10], c_shifted;
     ssize_t read;
     FILE *f;
-    char *token;
+
+    /* Dictionary of words to verify message*/
     f = fopen("dictionary.txt", "r");
-    while((fgets(dictionary[index], 10, f))){
-        dictionary[index][strlen(dictionary[index])-1]='\0';
-        index++;
+    while((fgets(dictionary[word_index], 10, f))){
+        dictionary[word_index][strlen(dictionary[word_index]) - 1] = ' ';
+        dictionary[word_index][strlen(dictionary[word_index])] = '\0';
+        word_index++;
     }
-    for(int i = 0; i < 26; i++){
-        for(int j=0; j < len; j++){
+
+    /* Decrypt messages */
+    for (int i = 0; i < 26; i++) {
+        for (int j = 0; j < len; j++) {
             c = (unsigned int)tolower(cipher[j]);
-            //printf("%d\n", c);
             
-            if((unsigned int)c > 96 && (unsigned int)c < 123){
-                shifted = (unsigned char)c+i;
-                message[j] = shifted;
-                //frecuency[(unsigned int)c+i-97]+=1;
+            if ((unsigned int)c > 96 && (unsigned int)c < 123) {
+                c_shifted = (unsigned char)c + i;
             
-                if(shifted > 122){
-                    offset = shifted - 122;
-                    shifted = (unsigned char)(96+offset);
-                    message[j] = shifted;
+                if (c_shifted > 122) {
+                    c_shifted = (unsigned char)(96 + (c_shifted - 122));
+                    decrypted_message[i][j] = c_shifted;
                 }
+
+                decrypted_message[i][j] = c_shifted;
             }
-            else{
-                message[j] = c;
+
+            else {
+                decrypted_message[i][j] = c;
             }
         }
-        print_string(message, len);
+
+        /* Compute accuracy (correctness) of decrypted message */
+        /* Algorithm takes into account lenght of words in dictionary */
+        message_score = 0;
+        for (word_index = 0; word_index < 22; word_index++) {
+
+            if (strstr(decrypted_message[i], dictionary[word_index]) != NULL) {
+                message_score += strlen(dictionary[word_index]);
+            }
+        }
+        scores[i] = (float)message_score / 22;
     }
+
+    /* Find message with max accuracy score */
+    for (int i = 1; i < 26; i++) {
+        if (scores[i] > max) {
+            max = scores[i];
+            max_index = i;
+        }
+    }
+
+    print_string(decrypted_message[max_index], len);
     return 0;
 }
-void print_string (unsigned char a[], int len)
-{
-    for (int i=0; i<len; i++)
-    {
-    printf("%c",a[i]);
+
+void print_string (unsigned char a[], int len) {
+    for (int i=0; i<len; i++) {
+        printf("%c",a[i]);
     }
     printf("\n");
 }
