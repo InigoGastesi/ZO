@@ -20,6 +20,7 @@ int main(){
     char c11[1000]="163b55530d020317491216551e1645070d0b54004502520b11574b161c54790013000b0917094c0301120b170e";
     char c12[1000]="100021000c04000c43031c550d054e54010b43010002010054530e060c52301b0c001e141a0b45140e17070849000100535d";
     char c13[1000]="793b1d451a04560c53460e550d1d42111a4553160616000c00594b161249350306001b0919175407081040";
+    unsigned char k[1000];
     char *cypherMesages[14]={c0,c1,c2,c3,c4,c5,c6,c7,c8,c9,c10,c11,c12,c13};
     int decMessages[14][1000];
     int tarteak[14][1000];
@@ -40,13 +41,23 @@ int main(){
             countTarteak(decMessages[i], decMessages[j], tarteak, i, size);
         }
     }
-
+    int space = 32;
     for(int i = 0; i < 14; i++){
-        for(int j = 0; j < 50; j++){
-            printf("%d ", tarteak[i][j]);
+        for(int j = 0; j < 100; j++){
+            if(tarteak[i][j]>7){
+                k[j]=(unsigned char)tarteak[i][j]^decMessages[i][j];
+            }
+            else{
+                k[j]=' ';
+            }
+            // printf("%d ", tarteak[i][j]);
         }
-        printf("\n");
+        // printf("\n");
     } 
+    for(int i = 0; i < 100; i++){
+        printf("%c ",k[i]);
+    } 
+    printf("\n");
 }
 
 void char2dec(char *message, int *decMessage){
