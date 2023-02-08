@@ -21,7 +21,7 @@ void print_hex(uint8_t *buf, uint32_t c)
 
     for(i = 0; i < c; i++)
     {
-        printf("%x", buf[i]);
+        printf("%02x", buf[i]);
     }
     printf("\n");
 }
@@ -85,23 +85,34 @@ uint32_t parse_mask(uint8_t *in, int64_t **key_mask){
     return(n_masks);                                                                                                                      
 }
 
-void search(int64_t n_key_mask, int64_t *key_mask, int64_t n_plaintext_mask, int64_t *plaintext_mask, uint8_t *key, uint8_t *plain_text, uint8_t *cypher_text)
+int search(int64_t n_key_mask, int64_t *key_mask, int64_t n_plaintext_mask, int64_t *plaintext_mask, uint8_t *key, uint8_t *plain_text, uint8_t *cypher_text)
 {
     struct AES_ctx ctx;
-
-    AES_init_ctx_iv(&ctx, key, iv);
-    for(int i=0; i<255; i++){
-        for(int j=0; j<255; j++){
-            for(int k=0; k<255; k++){
-                for(int w=0; w<255; w++){
-        
+    uint8_t *in = malloc(sizeof(uint8_t)*BLOCK_SIZE);
+    uint8_t *out = malloc(sizeof(uint8_t)*BLOCK_SIZE);
+    for(int i=0; i<256; i++){
+        key[key_mask[0]]=i;
+        for(int j=0; j<256; j++){
+            key[key_mask[1]]=j;
+            for(int k=0; k<256; k++){
+                key[key_mask[2]]=k;
+                for(int w=0; w<256; w++){
+                    key[key_mask[3]]=w;
+                    printf("0x%02x 0x%02x 0x%02x 0x%02x\n", key[key_mask[0]], key[key_mask[1]], key[key_mask[2]], key[key_mask[3]]);
+                    memcpy(in, cypher_text, BLOCK_SIZE);
+                    memcpy(out, plain_text, BLOCK_SIZE);
+                    AES_init_ctx_iv(&ctx, key, iv);
+                    AES_CBC_decrypt_buffer(&ctx, in, BLOCK_SIZE);
+                    if (0 == memcmp((char*) out, (char*) in, BLOCK_SIZE)) {
+                        printf("SUCCESS! KEY:");
+                        print_hex(key, KEY_LENGTH);
+                        return(0);
+                    }
                 }
             }
         }
     }
-    AES_CBC_decrypt_buffer(&ctx, cypher_text, 16);
-
-    printf("decrypt: %s\n", cypher_text);
+    return(0);
 }
 
 int main(int argc, char *argv[])

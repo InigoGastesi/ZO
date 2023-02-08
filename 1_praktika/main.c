@@ -79,7 +79,6 @@ void char2dec(char *message, int *decMessage){
 
 void countTarteak(int *c1, int *c2, int tarteak[14][1000], int c1index, int size){
     int mayus;
-
     for (int i = 0; i < size; i++){
         mayus = c1[i] ^ c2[i];
         if(mayus > 64 && mayus < 91){
