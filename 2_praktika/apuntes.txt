@@ -1,0 +1,10 @@
+AES-NI 
+    libaesni deskargatu
+    #include libaesni/iaesni.H
+    gcc -o decrypt decrypt.c aes.c libaesni/libaesni_lin64.so -DAESNI
+    search funtzioan
+    #ifdef ESNI
+        zein funtzio CBC AES-256
+    #else 
+        tiny_AES kodigoa
+    #endif
