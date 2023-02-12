@@ -27,13 +27,16 @@ int main(){
     int decMessages[14][1000];
     int tarteak[14][1000];
 
+    //Char chypher messages transform to hex
     for(int i = 0; i < 14; i++){
         char2dec(cypherMesages[i], decMessages[i]);
     }
 
+    //Count the spaces
     for(int i = 0; i < 14; i++){
         for(int j = 0; j < 13; j++){
             int size;
+            //Take the smaller size
             if (strlen(cypherMesages[i]) < strlen(cypherMesages[j])){
                 size = strlen(cypherMesages[i]);
             }
@@ -43,6 +46,7 @@ int main(){
             countTarteak(decMessages[i], decMessages[j], tarteak, i, size);
         }
     }
+    //print the number of spaces
     for(int i = 0; i < 14; i++){
         for(int j = 0; j < 100; j++){
             printf("%d ", tarteak[i][j]);
@@ -50,6 +54,7 @@ int main(){
         printf("\n");
     }
     int space = 32;
+    //apply the algorithm to find the key
     for(int i = 0; i < 14; i++){
         for(int j = 0; j < 100; j++){
             if(tarteak[i][j]>5){
@@ -57,12 +62,14 @@ int main(){
             }
         }
     } 
+    //ptrint key
     for(int i = 0; i < 100; i++){
         printf("%c",k[i]);
     } 
     printf("\n");
 
     char key[1000]="You have found the secret key You have found the secret key You have found the secret key You have found the secret key ";
+    //decrypt messages
     for(int i = 0; i < 14; i++){
         decryptMessage(key, cypherMesages[i], strlen(cypherMesages[i])/2);
     }
