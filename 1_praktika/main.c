@@ -47,6 +47,7 @@ int main(){
         }
     }
     //print the number of spaces
+    printf("Tarte kopurua:\n");
     for(int i = 0; i < 14; i++){
         for(int j = 0; j < 100; j++){
             printf("%d ", tarteak[i][j]);
@@ -62,14 +63,17 @@ int main(){
             }
         }
     } 
-    //ptrint key
+    //print key
+    printf("Gakoaren lehenengo bertsioa:");
     for(int i = 0; i < 100; i++){
         printf("%c",k[i]);
     } 
-    printf("\n");
+    printf("\n\n");
 
     char key[1000]="You have found the secret key You have found the secret key You have found the secret key You have found the secret key ";
+    printf("Gakoa: %s\n\n", key);
     //decrypt messages
+    printf("Mezu deszifratuak:\n\n");
     for(int i = 0; i < 14; i++){
         decryptMessage(key, cypherMesages[i], strlen(cypherMesages[i])/2);
     }
