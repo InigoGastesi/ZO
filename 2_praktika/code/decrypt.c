@@ -105,6 +105,7 @@ int search(int64_t n_key_mask, int64_t *key_mask, int64_t n_plaintext_mask, int6
                     //memcpy(out, plain_text, BLOCK_SIZE);
                     AES_init_ctx_iv(&ctx, key, iv);
                     AES_CBC_decrypt_buffer(&ctx, in, BLOCK_SIZE);
+                    
                     printf("dec in2:");
                     print_hex(in, BLOCK_SIZE);
                     printf("\n");
