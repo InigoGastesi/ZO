@@ -5,6 +5,7 @@
 #include <unistd.h>
 #include <time.h>
 #include "aes.h"
+#include "libaesni/iaesni.h"
 
 #define BLOCK_SIZE 16
 #define AES_KEY_LENGTH 32
@@ -90,6 +91,7 @@ int search(int64_t n_key_mask, int64_t *key_mask, int64_t n_plaintext_mask, int6
     struct AES_ctx ctx;
     uint8_t *in = malloc(sizeof(uint8_t)*BLOCK_SIZE);
     uint8_t *out = malloc(sizeof(uint8_t)*BLOCK_SIZE);
+    print_hex(plain_text, BLOCK_SIZE);
     for(int i=0; i<256; i++){
         key[key_mask[0]]=i;
         for(int j=0; j<256; j++){
@@ -99,14 +101,30 @@ int search(int64_t n_key_mask, int64_t *key_mask, int64_t n_plaintext_mask, int6
                 for(int w=0; w<256; w++){
                     key[key_mask[3]]=w;
                     memcpy(in, cypher_text, BLOCK_SIZE);
+                    #ifdef AESNI
                     //memcpy(out, plain_text, BLOCK_SIZE);
-                    AES_init_ctx_iv(&ctx, key, iv);
-                    AES_CBC_decrypt_buffer(&ctx, in, BLOCK_SIZE);
-                    if (0 == memcmp((char*) out, (char*) in, BLOCK_SIZE)) {
+                    // printf("in:");
+                    // print_hex(in, BLOCK_SIZE);
+                    dec_256_CBC(in, out, key, iv, 1);
+                    // printf("in:");
+                    // print_hex(in,BLOCK_SIZE);
+                    // printf("out:");
+                    // print_hex(out,BLOCK_SIZE);
+                    if (0 == memcmp((char*) out, (char*) plain_text, BLOCK_SIZE)) {
                         printf("SUCCESS! KEY:");
                         print_hex(key, KEY_LENGTH);
                         return(0);
                     }
+                    #else
+                    //memcpy(out, plain_text, BLOCK_SIZE);
+                    AES_init_ctx_iv(&ctx, key, iv);
+                    AES_CBC_decrypt_buffer(&ctx, in, BLOCK_SIZE);
+                    if (0 == memcmp((char*) plain_text, (char*) in, BLOCK_SIZE)) {
+                        printf("SUCCESS! KEY:");
+                        print_hex(key, KEY_LENGTH);
+                        return(0);
+                    }
+                    #endif
                 }
             }
         }
