@@ -111,8 +111,8 @@ int search(int64_t n_key_mask, int64_t *key_mask, int64_t n_plaintext_mask, int6
                     // printf("out:");
                     // print_hex(out,BLOCK_SIZE);
                     if (0 == memcmp((char*) out, (char*) plain_text, BLOCK_SIZE)) {
-                        printf("SUCCESS! KEY:");
-                        print_hex(key, KEY_LENGTH);
+                        printf("SUCCESS! KEY:%s\n", (char *) key);
+                        printf("Decrypted line: %s\n", (char *) out);
                         return(0);
                     }
                     #else
