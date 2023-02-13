@@ -98,11 +98,16 @@ int search(int64_t n_key_mask, int64_t *key_mask, int64_t n_plaintext_mask, int6
                 key[key_mask[2]]=k;
                 for(int w=0; w<256; w++){
                     key[key_mask[3]]=w;
-                    printf("0x%02x 0x%02x 0x%02x 0x%02x\n", key[key_mask[0]], key[key_mask[1]], key[key_mask[2]], key[key_mask[3]]);
+                    printf("key:");
+                    print_hex(key, KEY_LENGTH);
+                    printf("\n");
                     memcpy(in, cypher_text, BLOCK_SIZE);
-                    memcpy(out, plain_text, BLOCK_SIZE);
+                    //memcpy(out, plain_text, BLOCK_SIZE);
                     AES_init_ctx_iv(&ctx, key, iv);
                     AES_CBC_decrypt_buffer(&ctx, in, BLOCK_SIZE);
+                    printf("dec in2:");
+                    print_hex(in, BLOCK_SIZE);
+                    printf("\n");
                     if (0 == memcmp((char*) out, (char*) in, BLOCK_SIZE)) {
                         printf("SUCCESS! KEY:");
                         print_hex(key, KEY_LENGTH);
