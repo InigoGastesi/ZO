@@ -102,21 +102,13 @@ int search(int64_t n_key_mask, int64_t *key_mask, int64_t n_plaintext_mask, int6
                     key[key_mask[3]]=w;
                     memcpy(in, cypher_text, BLOCK_SIZE);
                     #ifdef AESNI
-                    //memcpy(out, plain_text, BLOCK_SIZE);
-                    // printf("in:");
-                    // print_hex(in, BLOCK_SIZE);
                     dec_256_CBC(in, out, key, iv, 1);
-                    // printf("in:");
-                    // print_hex(in,BLOCK_SIZE);
-                    // printf("out:");
-                    // print_hex(out,BLOCK_SIZE);
                     if (0 == memcmp((char*) out, (char*) plain_text, BLOCK_SIZE)) {
                         printf("SUCCESS! KEY:%s\n", (char *) key);
                         printf("Decrypted line: %s\n", (char *) out);
                         return(0);
                     }
                     #else
-                    //memcpy(out, plain_text, BLOCK_SIZE);
                     AES_init_ctx_iv(&ctx, key, iv);
                     AES_CBC_decrypt_buffer(&ctx, in, BLOCK_SIZE);
                     if (0 == memcmp((char*) plain_text, (char*) in, BLOCK_SIZE)) {
