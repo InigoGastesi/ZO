@@ -36,17 +36,17 @@ int main(void)
 	// DH_generate_key_pair(bob_public, bob_private);
 
 	// /*Bob send his public key to Alice, Alice generate the secret key */
-	DH_generate_key_secret(alice_secret, alice_private, bob_public);
+	// DH_generate_key_secret(alice_secret, alice_private, bob_public);
 
 	/*Alice send her public key to Bob, Bob generate the secret key */
-	// DH_generate_key_secret(bob_secret, bob_private, alice_public);
+	DH_generate_key_secret(bob_secret, bob_private, alice_public);
 
 	_print_key("alice_private", alice_private);
 	_print_key("alice_public", alice_public);
 	_print_key("bob_private", bob_private);
 	_print_key("bob_public", bob_public);
 	// _print_key("alice_secret", alice_secret);
-	// _print_key("bob_secret", bob_secret);
+	_print_key("bob_secret", bob_secret);
 
 	if (memcmp(alice_secret, bob_secret, DH_KEY_LENGTH) != 0) 
 	{

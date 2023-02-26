@@ -18,6 +18,8 @@
 
 #define MAXLENGTH 200
 
+
+
 //Declare all functions
 int test_encrypt_cbc(uint8_t* key, uint8_t* buf, int size_buf, uint8_t* iv);
 int test_decrypt_cbc(uint8_t* key, uint8_t* buf, int size_buf, uint8_t* iv);
@@ -63,6 +65,8 @@ int main(int argc, char *argv[])
 	//Read hex key input
 	parse(AES_KEYLEN, argv[2], key);
 
+
+    
 	//Interpret source file iv + c + tag
 	size_c = total_size_m - AES_BLOCKLEN - SHA256_BLOCK_SIZE;
 	memcpy(iv,totalfile, AES_BLOCKLEN);
@@ -90,40 +94,108 @@ int main(int argc, char *argv[])
 
 void HMAC_SHA256(uint8_t* key, int size_k, uint8_t* m, int size_m, uint8_t* HMAC)
 {
-	uint8_t *kipad = malloc(size_k * sizeof(uint8_t));
-    uint8_t *kopad = malloc(size_k * sizeof(uint8_t));
-    SHA256_CTX *ctx = malloc(sizeof(SHA256_CTX));
-    SHA256_CTX *ctx2 = malloc(sizeof(SHA256_CTX));
-    BYTE *hash = malloc(sizeof(BYTE));
+    //Primero debemos calcular los padded key para calcular el hmac
+
     uint8_t padded_key[SHA256_INPUT_SIZE]; //512 bits de clave
-    BYTE hash1[SHA256_BLOCK_SIZE];
-    BYTE hash2[SHA256_BLOCK_SIZE];
-    memset(padded_key,0, SHA256_INPUT_SIZE * sizeof(uint8_t));
-    memcpy(padded_key, key, size_k * sizeof(uint8_t));
-    for(int i = 0; i < SHA256_INPUT_SIZE; i++){
-        kipad[i] = IPAD ^ padded_key[i];
-        kopad[i] = OPAD ^ padded_key[i];
+    size_m = 32;
+    if(size_k == SHA256_INPUT_SIZE){
+        //Usamos la clave como tal
+        memcpy(padded_key,key,SHA256_INPUT_SIZE * sizeof(uint8_t));
+
+    }
+    else if(size_k < SHA256_INPUT_SIZE){
+        //Rellenamos con ceros
+
+        memset(padded_key,0, SHA256_INPUT_SIZE * sizeof(uint8_t));
+        memcpy(padded_key, key, size_k * sizeof(uint8_t));
+    }
+    else{
+        //Hasheamos la clave y llenamos con cero
+
+        SHA256_CTX  ctx_key_hash;
+
+        BYTE key_hash[SHA256_BLOCK_SIZE];
+        sha256_init(&ctx_key_hash);
+        sha256_update(&ctx_key_hash,key, strlen(key));
+        sha256_final(&ctx_key_hash,key_hash);
+
+        memset(padded_key,0, SHA256_INPUT_SIZE * sizeof(uint8_t));
+        memcpy(padded_key, key_hash, SHA256_BLOCK_SIZE * sizeof(uint8_t));
     }
 
-    uint8_t * key_message[SHA256_INPUT_SIZE + size_m];
 
-    memcpy(key_message,kipad,SHA256_INPUT_SIZE );
-    memcpy(key_message + SHA256_INPUT_SIZE,m,size_m);
+    //Una vez creada el padded key, comenzamos a calcular los xor con los pad correspondientes
 
-    sha256_init(ctx);
-    sha256_update(ctx, key_message, SHA256_INPUT_SIZE + size_m);
-    sha256_final(ctx, hash1);
 
- 
+    // ###### padded_key xor ipad #############
+
+    uint8_t padded_xor_ipad[SHA256_INPUT_SIZE];
+    int i;
+
+    memcpy(padded_xor_ipad,padded_key, SHA256_INPUT_SIZE * sizeof (uint8_t));
+
+    for (int i = 0; i < SHA256_INPUT_SIZE; i++)
+    {
+        padded_xor_ipad[i] = padded_xor_ipad[i] ^ IPAD;
+    }
+
+    //#####################
+
+    // ###### padded_key xor opad #############
+
+    uint8_t padded_xor_opad[SHA256_INPUT_SIZE];
+
+    memcpy(padded_xor_opad,padded_key, SHA256_INPUT_SIZE * sizeof (uint8_t));
+
+    for (int i = 0; i < SHA256_INPUT_SIZE; i++)
+    {
+        padded_xor_opad[i] = padded_xor_opad[i] ^ OPAD;
+    }
+
+    //#####################
+
+
+    //Una vez calculados los valores, empezamos por calcular el hash del padded_xor_ipad concatenado con el mensaje
+
+
+    uint8_t * key_xor_mensaje = malloc((SHA256_INPUT_SIZE + size_m) * sizeof(uint8_t));
+
+    memcpy(key_xor_mensaje,padded_xor_ipad,SHA256_INPUT_SIZE );
+    memcpy(key_xor_mensaje + SHA256_INPUT_SIZE,m,size_m);
+
+
+    SHA256_CTX ctx_hash1;
+    BYTE hash1[SHA256_BLOCK_SIZE];
+
+    sha256_init(&ctx_hash1);
+    sha256_update(&ctx_hash1, key_xor_mensaje, SHA256_INPUT_SIZE + size_m);
+    sha256_final(&ctx_hash1, hash1);
+
+    free(key_xor_mensaje);
+    
+    
+
+    //Ahora vamos a calcular hash2
+
     uint8_t text_hash2[SHA256_INPUT_SIZE + SHA256_BLOCK_SIZE];
-    memcpy(text_hash2,kopad, SHA256_INPUT_SIZE);
+
+    memcpy(text_hash2,padded_xor_opad, SHA256_INPUT_SIZE);
+
     memcpy(text_hash2 + SHA256_INPUT_SIZE,hash1, SHA256_BLOCK_SIZE);
 
-    sha256_init(ctx2);
-    sha256_update(ctx2,text_hash2, SHA256_INPUT_SIZE + SHA256_BLOCK_SIZE);
-    sha256_final(ctx2,hash2);
 
+    SHA256_CTX ctx_hash2;
+    BYTE hash2[SHA256_BLOCK_SIZE];
+
+    sha256_init(&ctx_hash2);
+    sha256_update(&ctx_hash2,text_hash2, SHA256_INPUT_SIZE + SHA256_BLOCK_SIZE);
+    sha256_final(&ctx_hash2,hash2);
+
+    //Copiamos el resultado a la variable
     memcpy(HMAC,hash2, SHA256_BLOCK_SIZE * sizeof(uint8_t));
+
+
+
 }
 
 
