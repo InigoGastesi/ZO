@@ -55,6 +55,7 @@ int main(int argc, char *argv[])
 	//Read input file .txt file and add padding
 	if ((fd_in = fopen(argv[1],"r"))== 0)
 	{
+        printf("%s\n", argv[1]);
 		fprintf(stderr, "Error opening output file");
 		return(0);
 	}
@@ -90,8 +91,8 @@ int main(int argc, char *argv[])
 
 void HMAC_SHA256(uint8_t* key, int size_k, uint8_t* m, int size_m, uint8_t* HMAC)
 {
-	uint8_t *kipad = malloc(size_k * sizeof(uint8_t));
-    uint8_t *kopad = malloc(size_k * sizeof(uint8_t));
+	uint8_t kipad[SHA256_INPUT_SIZE];;
+    uint8_t kopad[SHA256_INPUT_SIZE];;
     SHA256_CTX *ctx = malloc(sizeof(SHA256_CTX));
     SHA256_CTX *ctx2 = malloc(sizeof(SHA256_CTX));
     BYTE *hash = malloc(sizeof(BYTE));
@@ -100,19 +101,26 @@ void HMAC_SHA256(uint8_t* key, int size_k, uint8_t* m, int size_m, uint8_t* HMAC
     BYTE hash2[SHA256_BLOCK_SIZE];
     memset(padded_key,0, SHA256_INPUT_SIZE * sizeof(uint8_t));
     memcpy(padded_key, key, size_k * sizeof(uint8_t));
+    memcpy(kipad, padded_key, SHA256_INPUT_SIZE);
+    memcpy(kopad, padded_key, SHA256_INPUT_SIZE);
     for(int i = 0; i < SHA256_INPUT_SIZE; i++){
-        kipad[i] = IPAD ^ padded_key[i];
-        kopad[i] = OPAD ^ padded_key[i];
+        kipad[i] ^= IPAD;
+        kopad[i] ^= OPAD;
     }
+    printf("padded key: ");phex(padded_key, SHA256_INPUT_SIZE);
+    printf("kipad: ");phex(kipad, SHA256_INPUT_SIZE);
+    printf("kopad: ");phex(kopad, SHA256_INPUT_SIZE);
 
-    uint8_t * key_message[SHA256_INPUT_SIZE + size_m];
+    uint8_t key_message[SHA256_INPUT_SIZE + size_m];
 
     memcpy(key_message,kipad,SHA256_INPUT_SIZE );
     memcpy(key_message + SHA256_INPUT_SIZE,m,size_m);
-
+    printf("message: "); phex(m, size_m);
+    printf("kipad+message: ");phex(key_message, SHA256_INPUT_SIZE + size_m);
     sha256_init(ctx);
     sha256_update(ctx, key_message, SHA256_INPUT_SIZE + size_m);
     sha256_final(ctx, hash1);
+    printf("hash1: ");phex(hash1, SHA256_INPUT_SIZE);
 
  
     uint8_t text_hash2[SHA256_INPUT_SIZE + SHA256_BLOCK_SIZE];
